@@ -83,7 +83,7 @@ conda create -n apt python=3.10 -y
 conda activate apt
 # Install a PyTorch build that matches your CUDA. The pinned xformers requires
 # torch 2.4.1; relax it if you use a different torch version.
-pip install torch==2.4.1 torchvision==0.19.1 --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.6.0 torchvision==0.21.0 --index-url https://download.pytorch.org/whl/cu126
 pip install -r requirements.txt
 ```
 
@@ -116,10 +116,7 @@ We expose a number of preset configs (see `apt/configs.py` for the full list). E
 
 | Config                          | Purpose                                                    |
 |---------------------------------|------------------------------------------------------------|
-| `pretrain`                      | Pretrain on Droid + AgiBotWorld + RoboTwin + InternM1      |
-| `pretrain_final`                | Larger pretraining mix (adds InternA1 splits + EgoDex)     |
-| `finetune_libero`               | Fine-tune on all four LIBERO suites jointly                |
-| `finetune_libero_spatial_plus`  | Fine-tune on the LIBERO-PRO Spatial split                  |
+| `pretrain`                      | Pretrain on Droid + AgiBotWorld + InternA1 + InternM1      |
 | `finetune_aloha_pp_storage`     | Real-world ALOHA pick-place + table-storage fine-tuning    |
 | `debug`                         | Tiny single-batch config used for smoke tests              |
 
@@ -149,25 +146,26 @@ DeepSpeed-only flags (ignored when `--backend ddp`):
 | `--vlm-lr`       | Separate learning rate for VLM parameters          |
 | `--gc`           | Enable gradient checkpointing                      |
 
-**DDP (torchrun) example - both stages back-to-back:**
+**DDP (torchrun) + Fix VLM, Stage-0 only:**
 ```bash
-bash scripts/train.sh --backend ddp --gpus 0,1,2,3 \
+bash scripts/train.sh --backend ddp --gpus 0,1,2,3 --stage 0 \
     --config pretrain \
     --va-name apt_va --vla-name apt_vla
 ```
 
-**DeepSpeed ZeRO-3 + LoRA VLM, Stage-1 only:**
+**DeepSpeed ZeRO-2 + Full VLM, Stage-1 only:**
 ```bash
 bash scripts/train.sh --backend deepspeed --gpus 0,1,2,3 --stage 1 \
     --config pretrain \
-    --va-name apt_va --vla-name apt_vla_lora \
-    --ds-zero 3 --vlm-mode lora --gc --vlm-lr 5e-6
+    --va-name apt_va --vla-name apt_vla_vlmft \
+    --ds-zero 2 --vlm-mode full --gc --vlm-lr 1e-5
 ```
 
 **Resume Stage-1 after preemption:**
 ```bash
-bash scripts/train.sh --backend ddp --gpus 0,1,2,3 --stage 1 \
-    --config pretrain --vla-conti apt_vla
+bash scripts/train.sh --backend deepspeed --gpus 0,1,2,3 --stage 1 \
+    --config pretrain --vla-conti apt_vla_vlmft \
+    --ds-zero 2 --vlm-mode full --gc --vlm-lr 1e-5
 ```
 
 Stage-1 internally calls `VLA.load_from_pretrain(..., load_from_va=True)`, which doubles the Stage-1 attention layers and copies the Stage-0 weights into the odd indices while leaving the inserted (even-index) language-injection layers randomly initialized.
@@ -177,21 +175,21 @@ Stage-1 internally calls `VLA.load_from_pretrain(..., load_from_va=True)`, which
 `scripts/finetune.sh` mirrors `train.sh` but additionally exposes `--pretrained-ckpt` so you can bootstrap from any pretraining checkpoint. The Stage-1 launch automatically reuses the Stage-0 name (if any) or the pretraining checkpoint as the upstream.
 
 ```bash
-# Both stages on LIBERO from a pretrained VLA checkpoint
-bash scripts/finetune.sh --backend ddp --gpus 0,1,2,3 \
-    --config finetune_libero --pretrained-ckpt apt_vla \
-    --va-name ft_va --vla-name ft_vla
-
-# Stage-1 only, DeepSpeed ZeRO-3 + LoRA on real ALOHA data
+# Stage-1 only, DeepSpeed ZeRO-2 + Full VLM on Pick-Place from a pretrained VLA checkpoint
 bash scripts/finetune.sh --backend deepspeed --gpus 0,1,2,3 --stage 1 \
-    --config finetune_aloha_pp_storage --pretrained-ckpt apt_vla \
-    --vla-name ft_aloha_lora \
-    --ds-zero 3 --vlm-mode lora --gc --accum 4 --bs 8 --vlm-lr 5e-6
+    --config finetune_pp --pretrained-ckpt apt_vla \
+    --vla-name ft_apt_pp \
+    --ds-zero 3 --vlm-mode lora --gc --accum 4 --bs 64 --vlm-lr 1e-5
+
+# Stage-1 only, Fix VLM on real ALOHA data from a pretrained VLA checkpoint
+bash scripts/finetune.sh --backend ddp --gpus 0,1,2,3 --stage 1 \
+    --config finetune_aloha_pp_storage --pretrained-ckpt apt_vla_vlmft \
+    --vla-name ft_apt_aloha
 ```
 
 Checkpoints are written under `./checkpoints/APT/<name>/` and TensorBoard logs under `./logs/APT/<name>/`. Both roots are configurable per run via the optional flags `--ckpt_dir /path/to/ckpts` and `--log_dir /path/to/logs`, e.g. to keep separate experiments on different volumes. Likewise `--dataloader_timeout <seconds>` (default 300) lets you raise the DataLoader worker timeout for slow shared storage.
 
-### Loading existing BayesVLA / APT checkpoints
+### Loading existing APT checkpoints
 
 The merged trainer is backwards-compatible with checkpoints produced by the pre-refactor training scripts. A checkpoint is recognised by its file layout:
 
@@ -207,53 +205,27 @@ The merged `apt.train` accepts both, and you can also switch back-ends across re
 ```bash
 # Stage-0 VA checkpoint
 python scripts/test_ckpt.py \
-    --ckpt /path/to/m0113_vaprior_..._all/ckpt_latest.pt --train-stage 0
+    --ckpt /path/to/apt_ckpt_dir/ckpt_latest.pt --train-stage 0
 
 # Same VA checkpoint used to bootstrap Stage-1
 python scripts/test_ckpt.py \
-    --ckpt /path/to/m0113_vaprior_..._all/ckpt_latest.pt --train-stage 1 --load-from-va
+    --ckpt /path/to/apt_ckpt_dir/ckpt_latest.pt --train-stage 1 --load-from-va
 
 # Stage-1 VLA checkpoint (already-trained policy)
 python scripts/test_ckpt.py \
-    --ckpt /path/to/m0113_vlaprior_..._vlmft/ckpt_latest.pt --train-stage 1
+    --ckpt /path/to/apt_ckpt_dir/ckpt_latest.pt --train-stage 1
 ```
 
 **Bootstrap a new fine-tuning run from an existing VLA checkpoint (most common):**
 
 ```bash
 bash scripts/finetune.sh --backend deepspeed --gpus 0,1,2,3 --stage 1 \
-    --config finetune_libero \
-    --pretrained-ckpt /path/to/m0113_vlaprior_..._vlmft/ckpt_latest.pt \
-    --vla-name ft_libero --vlm-mode full
+    --config finetune_pp \
+    --pretrained-ckpt /path/to/apt_ckpt_dir/ckpt_latest.pt \
+    --vla-name ft_apt_pp --vlm-mode full
 ```
 
 `--pretrained-ckpt` accepts either a checkpoint subdir name under `./checkpoints/APT/` **or** an absolute path ending in `.pt`. The trainer starts with `current_iters=0` so the new run gets a clean iteration counter, and saves under `./checkpoints/APT/<vla-name>/`.
-
-**Resume training from an existing absolute-path checkpoint:**
-
-```bash
-# Resume a stage-1 run under a new local save directory (derived from the
-# parent folder name of the source ckpt, so the source is never overwritten).
-bash scripts/train.sh --backend deepspeed --gpus 0,1,2,3 --stage 1 \
-    --vla-conti /path/to/m0113_vlaprior_..._vlmft/ckpt_latest.pt
-```
-
-### Direct Python Invocation
-
-`scripts/train.sh` is a thin wrapper around `apt.train`. You can launch the trainer directly:
-
-```bash
-# DDP
-CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node 2 \
-    -m apt.train --backend ddp \
-    --config pretrain -s my_va_exp --train_stage 0
-
-# DeepSpeed
-deepspeed --include localhost:0,1 \
-    --module apt.train --backend deepspeed \
-    --ds-config ds_config_zero2.json \
-    --config pretrain -s my_va_exp --train_stage 0
-```
 
 ### Inference
 

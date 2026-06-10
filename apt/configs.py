@@ -24,7 +24,7 @@ class TrainConfig(object):
     vlm_lr: float | None = None  # separate LR for VLM params; None = same as max_lr
     vlm_wd: float = 1e-10  # weight decay for VLM params; near-zero following openpi convention
 
-    bs: int = 32  # batch size per gpu and per fwd
+    bs: int = 64  # batch size per gpu and per fwd
     workers: int = 8  # num_workers
     persistent_workers: bool = True  # CRITICAL: Set to False to prevent worker memory accumulation
     pin_memory: bool = True
