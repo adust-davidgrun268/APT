@@ -7,7 +7,7 @@
 
 [Kechun Xu](https://xukechun.github.io/) · [Zhenjie Zhu]() · [Anzhe Chen]() · [Rong Xiong](https://scholar.google.com/citations?user=1hI9bqUAAAAJ&hl=en) · [Yue Wang](https://ywang-zju.github.io/)
 
-<a href="assets/paper.pdf"><img src='https://img.shields.io/badge/Paper-APT-red' alt='Paper PDF'></a>
+<a href="https://arxiv.org/pdf/2606.12366"><img src='https://img.shields.io/badge/Paper-APT-red' alt='Paper PDF'></a>
 <a href='https://xukechun.github.io/papers/APT'><img src='https://img.shields.io/badge/Project_Page-APT-green' alt='Project Page'></a>
 
 </div>
@@ -288,14 +288,14 @@ See [`examples/libero/README.md`](examples/libero/README.md) for the per-benchma
 
 > **TODO** — public Hugging Face links will land here once the models are uploaded.
 
-| Stage                          | Config                          | Datasets                                                      | Trainable | Hugging Face |
-|--------------------------------|---------------------------------|----------------------------------------------------------------|-----------|--------------|
-| Stage-0 VA prior (pretrained)  | `pretrain`                      | Droid + AgiBotWorld + InternA1 + InternM1                      | 61 M      | _TBA_        |
-| Stage-1 VLA policy (pretrained) | `pretrain` (`--load_from_va`)  | same as above                                                  | 2.23 B    | _TBA_        |
-| LIBERO fine-tuned              | `finetune_libero`               | LIBERO Spatial / Object / Goal / 10                            | 2.23 B    | _TBA_        |
-| LIBERO-PRO fine-tuned          | `finetune_libero` (PRO data)    | LIBERO-PRO Spatial / Object / Goal / 10 (swap + task)          | 2.23 B    | _TBA_        |
-| LIBERO-PLUS fine-tuned         | `finetune_libero` (Plus data)   | LIBERO-PLUS Spatial / Object / Goal / 10                       | 2.23 B    | _TBA_        |
-| ALOHA real-world pick-place    | `finetune_aloha_pp_storage`     | ALOHA Pick-Place + Table-Storage (real)                        | 2.23 B    | _TBA_        |
+| Stage                          | Config                          | Datasets                                                      | Hugging Face |
+|--------------------------------|---------------------------------|----------------------------------------------------------------|--------------|
+| Stage-0 VA prior (pretrained)  | `pretrain`                      | Droid + AgiBotWorld + InternA1 + InternM1                      | _TBA_        |
+| Stage-1 VLA policy (pretrained) | `pretrain` (`--load_from_va`)  | same as above                                                  | _TBA_        |
+| LIBERO fine-tuned              | `finetune_libero`               | LIBERO Spatial / Object / Goal / 10                            | _TBA_        |
+| Pick-Place fine-tuned          | `finetune_pp`                   | PickPlaceCan                                                   | _TBA_        |
+| ALOHA real-world pick-place+storage    | `finetune_aloha_pp_storage`     | ALOHA Pick-Place + Table-Storage (real)                        | _TBA_        |
+| ALOHA real-world clutter pick-place    | `finetune_aloha_pp_clutter`     | ALOHA Pick-Place Clutter (real)                                | _TBA_        |
 
 Once uploaded, point the inference script at the downloaded checkpoint via `--ckpt /path/to/ckpt_latest.pt` (see the [Inference](#inference) section).
 
@@ -311,6 +311,7 @@ If you find this work useful, please consider citing:
 @article{xu2025apt,
       title={APT: Action Expert Pretraining Improves Instruction Generalization of Vision-Language-Action Policies},
       author={Xu, Kechun and Zhu, Zhenjie and Chen, Anzhe and Xiong, Rong and Wang, Yue},
+      journal={arXiv preprint arXiv:2606.12366},
       year={2025}
     }
 ```
