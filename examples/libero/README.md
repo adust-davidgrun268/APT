@@ -6,7 +6,7 @@ This folder runs the APT policy against three LIBERO benchmark families with **o
 |----------------|-----------------------------------------------------------------------------|---------------------------------------------------------------------|---------------------|
 | **LIBERO**     | [Lifelong-Robot-Learning/LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO) | `libero_object`, `libero_spatial`, `libero_goal`, `libero_10`       | 50                  |
 | **LIBERO-PRO** | [Zxy-MLlab/LIBERO-PRO](https://github.com/Zxy-MLlab/LIBERO-PRO)             | the 4 above × {`_swap`, `_task`} suffixes — **8 suites total**      | 50                  |
-| **LIBERO-PLUS**| [sylvestf/LIBERO-plus](https://github.com/sylvestf/LIBERO-plus)             | `libero_object`, `libero_spatial`, `libero_goal`, `libero_10`       | 1                   |
+| **LIBERO-plus**| [sylvestf/LIBERO-plus](https://github.com/sylvestf/LIBERO-plus)             | `libero_object`, `libero_spatial`, `libero_goal`, `libero_10`       | 1                   |
 
 The evaluator (`eval_libero_pred.py`) is identical for all three — the benchmark name controls only which simulator the host conda env loads, which suites the wrapper script iterates, and how many initial-state trials each task gets.
 
@@ -40,7 +40,7 @@ git clone https://github.com/openvla-oft/openvla-oft.git
 export PYTHONPATH=$(pwd)/openvla-oft:$PYTHONPATH
 ```
 
-### LIBERO-PLUS
+### LIBERO-plus
 ```bash
 conda create -n libero-plus python=3.10 -y && conda activate libero-plus
 git clone https://github.com/sylvestf/LIBERO-plus.git && cd LIBERO-plus && pip install -e . && cd ..
@@ -86,7 +86,7 @@ bash examples/libero/test_libero.sh \
     --model_name apt_vla \
     --controller_name control --controller_port 9091
 
-# LIBERO-PLUS — 4 suites × 1 trial each
+# LIBERO-plus — 4 suites × 1 trial each
 bash examples/libero/test_libero.sh \
     --benchmark libero-plus \
     --gpu 0 \

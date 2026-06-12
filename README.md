@@ -68,7 +68,9 @@ APT/
 ├── scripts/
 │   ├── train.sh               # two-stage pretraining (DDP or DeepSpeed)
 │   └── finetune.sh            # task-specific fine-tuning (DDP or DeepSpeed)
-├── examples/libero/           # LIBERO / LIBERO-PRO / LIBERO-PLUS evaluator
+├── examples/
+│   ├── libero/                # LIBERO / LIBERO-PRO / LIBERO-plus evaluator
+│   └── PickPlace/             # Isaac Sim pick-and-place benchmark (UR5 + Robotiq 85)
 ├── assets/                    # logo / method (PDF source + PNG for README), paper.pdf
 ├── requirements.txt
 ├── .gitignore
@@ -270,7 +272,7 @@ A single evaluator under [`examples/libero/`](examples/libero/) drives all three
 |----------------|---------------------------------------------------------------------------------|-------------------------------------------------------------------|---------------------|
 | **LIBERO**     | [Lifelong-Robot-Learning/LIBERO](https://github.com/Lifelong-Robot-Learning/LIBERO) | `libero_{object,spatial,goal,10}` — 4 suites                      | 50                  |
 | **LIBERO-PRO** | [Zxy-MLlab/LIBERO-PRO](https://github.com/Zxy-MLlab/LIBERO-PRO)                 | the 4 above × {`_swap`, `_task`} — 8 suites                       | 50                  |
-| **LIBERO-PLUS**| [sylvestf/LIBERO-plus](https://github.com/sylvestf/LIBERO-plus)                 | `libero_{object,spatial,goal,10}` — 4 suites                      | 1                   |
+| **LIBERO-plus**| [sylvestf/LIBERO-plus](https://github.com/sylvestf/LIBERO-plus)                 | `libero_{object,spatial,goal,10}` — 4 suites                      | 1                   |
 
 Quick start (LIBERO conda env, after launching the APT policy server in a separate terminal):
 
@@ -284,14 +286,36 @@ bash examples/libero/test_libero.sh \
 
 See [`examples/libero/README.md`](examples/libero/README.md) for the per-benchmark conda setup, the policy-server launch command, the full list of `test_libero.sh` flags, and the on-disk output layout.
 
+## 🤖 Evaluation on Pick-and-Place in Isaac Sim
+
+An Isaac-Sim-based pick-and-place benchmark lives under [`examples/PickPlace/`](examples/PickPlace/). A UR5 + Robotiq 85 arm executes language-conditioned pick-and-place on a tabletop scene; the APT policy server is queried for actions each control step.
+
+| Setting   | Description                                                                   |
+|-----------|-------------------------------------------------------------------------------|
+| **so**    | Seen object set, default lighting / ground                                    |
+| **uo**    | Held-out object set, default lighting / ground                                |
+| **uc**    | Same objects as `so`, but the target container is a held-out mug              |
+| **uoue**  | Held-out objects + novel HDR background + randomized ground (seed sweep)      |
+
+Two separate Python environments are involved: the APT env (running the policy server with `shm_transport`) and the Isaac Sim bundled Python (running the benchmark). `shm_transport` lives at the APT root and is picked up automatically by the driver via `PYTHONPATH`. Quick start:
+
+```bash
+# 1. APT env (separate terminal) — launch the policy server, see "Inference" above.
+# 2. Isaac Sim env — drive all 4 settings:
+cd examples/PickPlace
+GPU_ID=0 URI=control PORT=9091 SAVE_DIR=./data/exp_results/myrun \
+    bash eval_all.sh
+```
+
+See [`examples/PickPlace/README.md`](examples/PickPlace/README.md) for the asset preparation, full environment requirements, per-setting flags, and the on-disk output format (`<save_dir>/<setting>/videos/*.mp4` + `metrics/*.json`).
+
 ## 📥 Pretrained Checkpoints
 
 > **TODO** — public Hugging Face links will land here once the models are uploaded.
 
 | Stage                          | Config                          | Datasets                                                      | Hugging Face |
 |--------------------------------|---------------------------------|----------------------------------------------------------------|--------------|
-| Stage-0 VA prior (pretrained)  | `pretrain`                      | Droid + AgiBotWorld + InternA1 + InternM1                      | _TBA_        |
-| Stage-1 VLA policy (pretrained) | `pretrain` (`--load_from_va`)  | same as above                                                  | _TBA_        |
+| Pretrained VLA policy          | `pretrain` (`--load_from_va`)  | Droid + AgiBotWorld + InternA1 + InternM1                      | _TBA_        |
 | LIBERO fine-tuned              | `finetune_libero`               | LIBERO Spatial / Object / Goal / 10                            | _TBA_        |
 | Pick-Place fine-tuned          | `finetune_pp`                   | PickPlaceCan                                                   | _TBA_        |
 | ALOHA real-world pick-place+storage    | `finetune_aloha_pp_storage`     | ALOHA Pick-Place + Table-Storage (real)                        | _TBA_        |
