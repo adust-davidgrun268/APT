@@ -336,10 +336,10 @@ This project builds upon [BayesVLA](https://github.com/xukechun/BayesVLA), and [
 If you find this work useful, please consider citing:
 
 ```
-@article{xu2025apt,
+@article{xu2026apt,
       title={APT: Action Expert Pretraining Improves Instruction Generalization of Vision-Language-Action Policies},
       author={Xu, Kechun and Zhu, Zhenjie and Chen, Anzhe and Xiong, Rong and Wang, Yue},
       journal={arXiv preprint arXiv:2606.12366},
-      year={2025}
+      year={2026}
     }
 ```
