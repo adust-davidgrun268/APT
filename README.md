@@ -311,17 +311,21 @@ See [`examples/PickPlace/README.md`](examples/PickPlace/README.md) for the asset
 
 ## 📥 Pretrained Checkpoints
 
-> **TODO** — public Hugging Face links will land here once the models are uploaded.
+All checkpoints live under a single Hugging Face repo: [KechunXu1/apt_models](https://huggingface.co/KechunXu1/apt_models/tree/main).
 
 | Stage                          | Config                          | Datasets                                                      | Hugging Face |
 |--------------------------------|---------------------------------|----------------------------------------------------------------|--------------|
-| Pretrained VLA policy          | `pretrain` (`--load_from_va`)  | Droid + AgiBotWorld + InternA1 + InternM1                      | _TBA_        |
-| LIBERO fine-tuned              | `finetune_libero`               | LIBERO Spatial / Object / Goal / 10                            | _TBA_        |
-| Pick-Place fine-tuned          | `finetune_pp`                   | PickPlaceCan                                                   | _TBA_        |
-| ALOHA real-world pick-place+storage    | `finetune_aloha_pp_storage`     | ALOHA Pick-Place + Table-Storage (real)                        | _TBA_        |
-| ALOHA real-world clutter pick-place    | `finetune_aloha_pp_clutter`     | ALOHA Pick-Place Clutter (real)                                | _TBA_        |
+| Pretrained VLA policy          | `pretrain` (`--load_from_va`)  | Droid + AgiBotWorld + InternA1 + InternM1                      | [apt_vla](https://huggingface.co/KechunXu1/apt_models/tree/main/apt_vla) |
+| LIBERO fine-tuned              | `finetune_libero`               | LIBERO Spatial / Object / Goal / 10                            | [apt_vla_ftlibero](https://huggingface.co/KechunXu1/apt_models/tree/main/apt_vla_ftlibero) |
+| Pick-Place fine-tuned          | `finetune_pp`                   | PickPlaceCan                                                   | [apt_vla_ftpp](https://huggingface.co/KechunXu1/apt_models/tree/main/apt_vla_ftpp) |
 
-Once uploaded, point the inference script at the downloaded checkpoint via `--ckpt /path/to/ckpt_latest.pt` (see the [Inference](#inference) section).
+Download a checkpoint (e.g. the pretrained VLA policy):
+
+```bash
+hf download KechunXu1/apt_models --include "apt_vla/*" --local-dir ./checkpoints/APT
+```
+
+Then point the inference script at the downloaded checkpoint via `--ckpt ./checkpoints/APT/apt_vla/ckpt_latest.pt` (see the [Inference](#inference) section).
 
 ## 🤝 Acknowledgements
 
